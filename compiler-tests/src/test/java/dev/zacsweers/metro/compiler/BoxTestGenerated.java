@@ -23,6 +23,76 @@ public class BoxTestGenerated extends AbstractBoxTest {
   }
 
   @Nested
+  @TestMetadata("compiler-tests/src/test/data/box/aggregation")
+  @TestDataPath("$PROJECT_ROOT")
+  public class Aggregation {
+    @Test
+    public void testAllFilesPresentInAggregation() {
+      KtTestUtil.assertAllTestsPresentByMetadataWithExcluded(this.getClass(), new File("compiler-tests/src/test/data/box/aggregation"), Pattern.compile("^(.+)\\.kt$"), null, TargetBackend.JVM_IR, true);
+    }
+
+    @Test
+    @TestMetadata("ContributesBindingWithGenericBoundType.kt")
+    public void testContributesBindingWithGenericBoundType() {
+      runTest("compiler-tests/src/test/data/box/aggregation/ContributesBindingWithGenericBoundType.kt");
+    }
+
+    @Test
+    @TestMetadata("ContributesBindingWithGenericQualifiedBoundTypeFromAnotherModule.kt")
+    public void testContributesBindingWithGenericQualifiedBoundTypeFromAnotherModule() {
+      runTest("compiler-tests/src/test/data/box/aggregation/ContributesBindingWithGenericQualifiedBoundTypeFromAnotherModule.kt");
+    }
+
+    @Test
+    @TestMetadata("ContributesBindingWithImplicitBoundType.kt")
+    public void testContributesBindingWithImplicitBoundType() {
+      runTest("compiler-tests/src/test/data/box/aggregation/ContributesBindingWithImplicitBoundType.kt");
+    }
+
+    @Test
+    @TestMetadata("ContributesBindingWithImplicitBoundType_AdditionalScope.kt")
+    public void testContributesBindingWithImplicitBoundType_AdditionalScope() {
+      runTest("compiler-tests/src/test/data/box/aggregation/ContributesBindingWithImplicitBoundType_AdditionalScope.kt");
+    }
+
+    @Test
+    @TestMetadata("ContributesBindingWithImplicitBoundType_FromAnotherModule.kt")
+    public void testContributesBindingWithImplicitBoundType_FromAnotherModule() {
+      runTest("compiler-tests/src/test/data/box/aggregation/ContributesBindingWithImplicitBoundType_FromAnotherModule.kt");
+    }
+
+    @Test
+    @TestMetadata("ContributesBindingWithImplicitBoundType_Object.kt")
+    public void testContributesBindingWithImplicitBoundType_Object() {
+      runTest("compiler-tests/src/test/data/box/aggregation/ContributesBindingWithImplicitBoundType_Object.kt");
+    }
+
+    @Test
+    @TestMetadata("ContributesBindingWithImplicitQualifiedBoundType.kt")
+    public void testContributesBindingWithImplicitQualifiedBoundType() {
+      runTest("compiler-tests/src/test/data/box/aggregation/ContributesBindingWithImplicitQualifiedBoundType.kt");
+    }
+
+    @Test
+    @TestMetadata("ContributesBindingWithMultipleBoundTypes.kt")
+    public void testContributesBindingWithMultipleBoundTypes() {
+      runTest("compiler-tests/src/test/data/box/aggregation/ContributesBindingWithMultipleBoundTypes.kt");
+    }
+
+    @Test
+    @TestMetadata("ContributesBindingWithSpecificBoundType.kt")
+    public void testContributesBindingWithSpecificBoundType() {
+      runTest("compiler-tests/src/test/data/box/aggregation/ContributesBindingWithSpecificBoundType.kt");
+    }
+
+    @Test
+    @TestMetadata("ContributesBindingWithSpecificQualifiedBoundType.kt")
+    public void testContributesBindingWithSpecificQualifiedBoundType() {
+      runTest("compiler-tests/src/test/data/box/aggregation/ContributesBindingWithSpecificQualifiedBoundType.kt");
+    }
+  }
+
+  @Nested
   @TestMetadata("compiler-tests/src/test/data/box/member")
   @TestDataPath("$PROJECT_ROOT")
   public class Member {

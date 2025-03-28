@@ -31,15 +31,15 @@ public class FirDumpTestGenerated extends AbstractFirDumpTest {
     }
 
     @Test
-    @TestMetadata("ContributingTypes.kt")
-    public void testContributingTypes() {
-      runTest("compiler-tests/src/test/data/dump/fir/aggregation/ContributingTypes.kt");
+    @TestMetadata("ContributingTypesAreGeneratedInFir.kt")
+    public void testContributingTypesAreGeneratedInFir() {
+      runTest("compiler-tests/src/test/data/dump/fir/aggregation/ContributingTypesAreGeneratedInFir.kt");
     }
 
     @Test
-    @TestMetadata("ContributingTypesDependency.kt")
-    public void testContributingTypesDependency() {
-      runTest("compiler-tests/src/test/data/dump/fir/aggregation/ContributingTypesDependency.kt");
+    @TestMetadata("ContributingTypesAreVisibleFromAnotherModule.kt")
+    public void testContributingTypesAreVisibleFromAnotherModule() {
+      runTest("compiler-tests/src/test/data/dump/fir/aggregation/ContributingTypesAreVisibleFromAnotherModule.kt");
     }
   }
 }

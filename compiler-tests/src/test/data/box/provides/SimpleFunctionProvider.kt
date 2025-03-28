@@ -9,7 +9,7 @@ interface ExampleGraph {
 }
 
 fun box(): String {
-  var provider = createGraph<ExampleGraph>().provider
+  val provider = createGraph<ExampleGraph>().provider
   assertEquals(provider.invoke(), "Hello, world!")
   assertEquals(provider.invoke(), "Hello, world!")
   return "OK"
