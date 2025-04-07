@@ -79,7 +79,7 @@ internal object DependencyGraphCreatorChecker : FirClassChecker(MppCheckerKind.C
       var isIncludes = false
       var isProvides = false
       var isExtends = false
-      for (annotation in param.annotations) {
+      for (annotation in param.resolvedAnnotationsWithArguments) {
         if (!annotation.isResolved) continue
         val annotationClassId = annotation.toAnnotationClassIdSafe(session) ?: continue
         when (annotationClassId) {
@@ -128,7 +128,7 @@ internal object DependencyGraphCreatorChecker : FirClassChecker(MppCheckerKind.C
         }
         isExtends -> {
           val dependencyGraphAnno =
-            type.annotations
+            type.resolvedAnnotationsWithArguments
               .annotationsIn(session, classIds.dependencyGraphAnnotations)
               .firstOrNull()
           if (dependencyGraphAnno == null) {

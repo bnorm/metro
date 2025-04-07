@@ -20,11 +20,13 @@ import org.jetbrains.kotlin.fir.FirSession
 import org.jetbrains.kotlin.fir.analysis.checkers.MppCheckerKind
 import org.jetbrains.kotlin.fir.analysis.checkers.context.CheckerContext
 import org.jetbrains.kotlin.fir.analysis.checkers.declaration.FirClassChecker
+import org.jetbrains.kotlin.fir.declarations.DirectDeclarationsAccess
 import org.jetbrains.kotlin.fir.declarations.FirClass
 import org.jetbrains.kotlin.fir.declarations.getStringArgument
 import org.jetbrains.kotlin.fir.resolve.firClassLike
 import org.jetbrains.kotlin.fir.symbols.impl.FirValueParameterSymbol
 
+@OptIn(DirectDeclarationsAccess::class)
 internal object AssistedInjectChecker : FirClassChecker(MppCheckerKind.Common) {
   override fun check(declaration: FirClass, context: CheckerContext, reporter: DiagnosticReporter) {
     declaration.source ?: return
@@ -176,7 +178,7 @@ internal object AssistedInjectChecker : FirClassChecker(MppCheckerKind.Common) {
       ): FirAssistedParameterKey {
         return FirAssistedParameterKey(
           typeKey,
-          annotations
+          resolvedAnnotationsWithArguments
             .annotationsIn(session, session.classIds.assistedAnnotations)
             .singleOrNull()
             ?.getStringArgument(Symbols.Names.value, session)

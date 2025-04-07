@@ -84,7 +84,7 @@ internal class ContributedInterfaceSupertypeGenerator(
         .flatMap { it.predicateBasedProvider.getSymbolsByPredicate(contributingTypesPredicate) }
         .filterIsInstance<FirRegularClassSymbol>()
         .forEach { clazz ->
-          clazz.annotations
+          clazz.resolvedCompilerAnnotationsWithClassIds
             .annotationsIn(session, session.classIds.allContributesAnnotations)
             .mapNotNull { it.resolvedScopeClassId(typeResolver) }
             .forEach { scopeClassId ->
@@ -110,7 +110,7 @@ internal class ContributedInterfaceSupertypeGenerator(
           val originClass =
             contribution.resolvedReturnType.toRegularClassSymbol(session) ?: continue
 
-          originClass.annotations
+          originClass.resolvedCompilerAnnotationsWithClassIds
             .annotationsIn(session, session.classIds.allContributesAnnotations)
             .mapNotNull { it.resolvedScopeClassId(typeResolver) }
             .distinct()
@@ -204,7 +204,7 @@ internal class ContributedInterfaceSupertypeGenerator(
       .filterIsInstance<ConeClassLikeType>()
       .mapNotNull { it.toClassSymbol(session)?.getContainingClassSymbol() }
       .flatMap { contributingType ->
-        contributingType.annotations
+        contributingType.resolvedCompilerAnnotationsWithClassIds
           .annotationsIn(session, session.classIds.allContributesAnnotations)
           .flatMap { annotation -> annotation.resolvedReplacedClassIds(typeResolver) }
       }
@@ -269,7 +269,7 @@ internal class ContributedInterfaceSupertypeGenerator(
         .filterIsInstance<ConeClassLikeType>()
         .mapNotNull { it.toClassSymbol(session)?.getContainingClassSymbol() }
         .flatMap { contributingType ->
-          contributingType.annotations
+          contributingType.resolvedCompilerAnnotationsWithClassIds
             .annotationsIn(session, session.classIds.contributesBindingAnnotations)
             .mapNotNull { annotation ->
               annotation.resolvedBindingArgument(session, typeResolver)?.let { bindingArg ->

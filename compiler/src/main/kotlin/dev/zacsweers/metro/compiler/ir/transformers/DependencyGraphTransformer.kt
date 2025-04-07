@@ -136,7 +136,7 @@ import org.jetbrains.kotlin.ir.util.primaryConstructor
 import org.jetbrains.kotlin.ir.util.propertyIfAccessor
 import org.jetbrains.kotlin.ir.util.simpleFunctions
 import org.jetbrains.kotlin.ir.util.statements
-import org.jetbrains.kotlin.ir.visitors.IrElementTransformer
+import org.jetbrains.kotlin.ir.visitors.IrTransformer
 import org.jetbrains.kotlin.name.CallableId
 import org.jetbrains.kotlin.name.ClassId
 import org.jetbrains.kotlin.name.Name
@@ -149,7 +149,7 @@ internal class DependencyGraphData {
 internal class DependencyGraphTransformer(
   context: IrMetroContext,
   moduleFragment: IrModuleFragment,
-) : IrElementTransformer<DependencyGraphData>, IrMetroContext by context {
+) : IrTransformer<DependencyGraphData>(), IrMetroContext by context {
 
   private val membersInjectorTransformer = MembersInjectorTransformer(context)
   private val injectConstructorTransformer =
@@ -1016,7 +1016,7 @@ internal class DependencyGraphTransformer(
                 symbol,
                 irCall(metroGraph.primaryConstructor!!.symbol).apply {
                   for (param in createFunction.valueParameters) {
-                    putValueArgument(param.index, irGet(param))
+                    arguments[param] = irGet(param)
                   }
                 },
               )

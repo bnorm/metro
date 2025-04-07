@@ -106,7 +106,8 @@ internal class ContributionsFirGenerator(session: FirSession) :
     val contributesIntoSetAnnotations = session.classIds.contributesIntoSetAnnotations
     val contributesIntoMapAnnotations = session.classIds.contributesIntoMapAnnotations
     val contributions = mutableSetOf<Contribution>()
-    for (annotation in contributingSymbol.annotations.filter { it.isResolved }) {
+    for (annotation in
+      contributingSymbol.resolvedCompilerAnnotationsWithClassIds.filter { it.isResolved }) {
       val annotationClassId = annotation.toAnnotationClassIdSafe(session) ?: continue
       when (annotationClassId) {
         in contributesToAnnotations -> {

@@ -26,7 +26,6 @@ import org.jetbrains.kotlin.ir.types.classOrNull
 import org.jetbrains.kotlin.ir.util.classId
 import org.jetbrains.kotlin.ir.util.companionObject
 import org.jetbrains.kotlin.ir.util.constructors
-import org.jetbrains.kotlin.ir.util.explicitParametersCount
 import org.jetbrains.kotlin.ir.util.getPropertyGetter
 import org.jetbrains.kotlin.ir.util.kotlinPackageFqn
 import org.jetbrains.kotlin.ir.util.nestedClasses
@@ -377,7 +376,7 @@ internal class Symbols(
   val stdlibCheckNotNull: IrFunctionSymbol by lazy {
     pluginContext
       .referenceFunctions(CallableId(stdlib.packageFqName, Name.identifier("checkNotNull")))
-      .single { it.owner.explicitParametersCount == 2 }
+      .single { it.owner.parameters.size == 2 }
   }
 
   val emptySet by lazy {

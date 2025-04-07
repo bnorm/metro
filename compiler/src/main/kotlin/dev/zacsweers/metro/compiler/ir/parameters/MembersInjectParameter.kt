@@ -2,7 +2,6 @@
 // SPDX-License-Identifier: Apache-2.0
 package dev.zacsweers.metro.compiler.ir.parameters
 
-import dev.drewhamilton.poko.Poko
 import dev.zacsweers.metro.compiler.Symbols
 import dev.zacsweers.metro.compiler.asName
 import dev.zacsweers.metro.compiler.ir.ContextualTypeKey
@@ -18,18 +17,17 @@ import org.jetbrains.kotlin.ir.declarations.IrValueParameter
 import org.jetbrains.kotlin.ir.types.IrType
 import org.jetbrains.kotlin.name.Name
 
-@Poko
 internal class MembersInjectParameter(
   override val kind: Kind,
   override val name: Name,
   override val contextualTypeKey: ContextualTypeKey,
   override val hasDefault: Boolean,
-  @Poko.Skip override val originalName: Name,
-  @Poko.Skip override val providerType: IrType,
-  @Poko.Skip override val lazyType: IrType,
-  @Poko.Skip override val symbols: Symbols,
-  @Poko.Skip override val location: CompilerMessageSourceLocation?,
-  @Poko.Skip override val ir: IrValueParameter,
+  override val originalName: Name,
+  override val providerType: IrType,
+  override val lazyType: IrType,
+  override val symbols: Symbols,
+  override val location: CompilerMessageSourceLocation?,
+  override val ir: IrValueParameter,
 ) : Parameter {
   override val typeKey: TypeKey = contextualTypeKey.typeKey
   override val type: IrType = contextualTypeKey.typeKey.type
@@ -58,6 +56,28 @@ internal class MembersInjectParameter(
   }
 
   override fun toString(): String = cachedToString
+
+  override fun equals(other: Any?): Boolean {
+    if (this === other) return true
+    if (javaClass != other?.javaClass) return false
+
+    other as MembersInjectParameter
+
+    if (hasDefault != other.hasDefault) return false
+    if (kind != other.kind) return false
+    if (name != other.name) return false
+    if (contextualTypeKey != other.contextualTypeKey) return false
+
+    return true
+  }
+
+  override fun hashCode(): Int {
+    var result = hasDefault.hashCode()
+    result = 31 * result + kind.hashCode()
+    result = 31 * result + name.hashCode()
+    result = 31 * result + contextualTypeKey.hashCode()
+    return result
+  }
 }
 
 internal fun List<IrValueParameter>.mapToMemberInjectParameters(

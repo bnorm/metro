@@ -2,7 +2,6 @@
 // SPDX-License-Identifier: Apache-2.0
 package dev.zacsweers.metro.compiler.fir
 
-import dev.drewhamilton.poko.Poko
 import dev.zacsweers.metro.compiler.unsafeLazy
 import org.jetbrains.kotlin.descriptors.annotations.AnnotationUseSiteTarget
 import org.jetbrains.kotlin.fir.FirSession
@@ -21,9 +20,10 @@ import org.jetbrains.kotlin.fir.types.FirTypeRef
 import org.jetbrains.kotlin.fir.types.coneType
 
 // TODO cache these?
-@Poko
-internal class FirTypeKey(val type: ConeKotlinType, val qualifier: MetroFirAnnotation? = null) :
-  Comparable<FirTypeKey> {
+internal data class FirTypeKey(
+  val type: ConeKotlinType,
+  val qualifier: MetroFirAnnotation? = null,
+) : Comparable<FirTypeKey> {
   private val cachedToString by unsafeLazy { render(short = false, includeQualifier = true) }
 
   override fun toString(): String = cachedToString
@@ -54,14 +54,7 @@ internal class FirTypeKey(val type: ConeKotlinType, val qualifier: MetroFirAnnot
     }
 
     fun from(session: FirSession, parameter: FirValueParameterSymbol): FirTypeKey {
-      val annotations =
-        if (parameter.containingFunctionSymbol?.receiverParameter == parameter) {
-          parameter.containingFunctionSymbol!!.annotations.filter {
-            it.useSiteTarget == AnnotationUseSiteTarget.RECEIVER
-          }
-        } else {
-          parameter.annotations
-        }
+      val annotations = parameter.resolvedCompilerAnnotationsWithClassIds
       return from(session, parameter.resolvedReturnTypeRef, annotations)
     }
 

@@ -5,6 +5,7 @@ pluginManagement {
     google()
     mavenCentral()
     gradlePluginPortal()
+    maven("https://maven.pkg.jetbrains.space/kotlin/p/kotlin/bootstrap")
   }
   plugins { id("com.gradle.develocity") version "3.19.2" }
 }
@@ -13,6 +14,7 @@ dependencyResolutionManagement {
   repositories {
     google()
     mavenCentral()
+    maven("https://maven.pkg.jetbrains.space/kotlin/p/kotlin/bootstrap")
   }
 }
 

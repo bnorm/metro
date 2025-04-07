@@ -14,6 +14,7 @@ import dev.zacsweers.metro.compiler.unsafeLazy
 import org.jetbrains.kotlin.descriptors.ClassKind
 import org.jetbrains.kotlin.descriptors.Modality
 import org.jetbrains.kotlin.fir.FirSession
+import org.jetbrains.kotlin.fir.declarations.DirectDeclarationsAccess
 import org.jetbrains.kotlin.fir.declarations.FirSimpleFunction
 import org.jetbrains.kotlin.fir.expressions.builder.buildAnnotation
 import org.jetbrains.kotlin.fir.expressions.builder.buildAnnotationArgumentMapping
@@ -43,6 +44,7 @@ import org.jetbrains.kotlin.name.Name
  * Note this is specifically for generating `@AssistedFactory`-annotated declarations, not for
  * generating assisted factory impls.
  */
+@OptIn(DirectDeclarationsAccess::class)
 internal class AssistedFactoryFirGenerator(session: FirSession) :
   FirDeclarationGenerationExtension(session) {
 

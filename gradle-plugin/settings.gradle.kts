@@ -18,10 +18,14 @@ pluginManagement {
     google()
     mavenCentral()
     gradlePluginPortal()
+    maven("https://maven.pkg.jetbrains.space/kotlin/p/kotlin/bootstrap")
   }
 }
 
 dependencyResolutionManagement {
   versionCatalogs { maybeCreate("libs").apply { from(files("../gradle/libs.versions.toml")) } }
-  repositories { mavenCentral() }
+  repositories {
+    mavenCentral()
+    maven("https://maven.pkg.jetbrains.space/kotlin/p/kotlin/bootstrap")
+  }
 }

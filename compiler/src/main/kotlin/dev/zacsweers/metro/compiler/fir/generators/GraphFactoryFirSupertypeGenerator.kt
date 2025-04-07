@@ -7,6 +7,7 @@ import dev.zacsweers.metro.compiler.fir.isDependencyGraph
 import dev.zacsweers.metro.compiler.unsafeLazy
 import org.jetbrains.kotlin.fir.FirSession
 import org.jetbrains.kotlin.fir.analysis.checkers.getContainingClassSymbol
+import org.jetbrains.kotlin.fir.declarations.DirectDeclarationsAccess
 import org.jetbrains.kotlin.fir.declarations.FirClass
 import org.jetbrains.kotlin.fir.declarations.FirClassLikeDeclaration
 import org.jetbrains.kotlin.fir.declarations.FirRegularClass
@@ -18,7 +19,6 @@ import org.jetbrains.kotlin.fir.extensions.FirSupertypeGenerationExtension
 import org.jetbrains.kotlin.fir.extensions.predicate.LookupPredicate.BuilderContext.parentAnnotated
 import org.jetbrains.kotlin.fir.resolve.defaultType
 import org.jetbrains.kotlin.fir.resolve.getContainingDeclaration
-import org.jetbrains.kotlin.fir.toFirResolvedTypeRef
 import org.jetbrains.kotlin.fir.types.ConeClassLikeType
 import org.jetbrains.kotlin.fir.types.ConeKotlinType
 import org.jetbrains.kotlin.fir.types.FirResolvedTypeRef
@@ -58,6 +58,7 @@ import org.jetbrains.kotlin.fir.types.coneTypeOrNull
  * }
  * ```
  */
+@OptIn(DirectDeclarationsAccess::class)
 internal class GraphFactoryFirSupertypeGenerator(session: FirSession) :
   FirSupertypeGenerationExtension(session) {
   private val dependencyGraphCompanionPredicate by unsafeLazy {
@@ -92,10 +93,10 @@ internal class GraphFactoryFirSupertypeGenerator(session: FirSession) :
   override fun computeAdditionalSupertypesForGeneratedNestedClass(
     klass: FirRegularClass,
     typeResolver: TypeResolveService,
-  ): List<FirResolvedTypeRef> {
+  ): List<ConeKotlinType> {
     val graphCreator = computeCompanionSupertype(klass, typeResolver) ?: return emptyList()
 
-    return listOf(graphCreator.toFirResolvedTypeRef())
+    return listOf(graphCreator)
   }
 
   private fun computeCompanionSupertype(

@@ -2,7 +2,6 @@
 // SPDX-License-Identifier: Apache-2.0
 package dev.zacsweers.metro.compiler.fir.checkers
 
-import dev.drewhamilton.poko.Poko
 import dev.zacsweers.metro.compiler.fir.FirMetroErrors
 import dev.zacsweers.metro.compiler.fir.FirTypeKey
 import dev.zacsweers.metro.compiler.fir.MetroFirAnnotation
@@ -26,6 +25,7 @@ import org.jetbrains.kotlin.fir.analysis.checkers.MppCheckerKind
 import org.jetbrains.kotlin.fir.analysis.checkers.context.CheckerContext
 import org.jetbrains.kotlin.fir.analysis.checkers.declaration.FirClassChecker
 import org.jetbrains.kotlin.fir.analysis.checkers.fullyExpandedClassId
+import org.jetbrains.kotlin.fir.declarations.DirectDeclarationsAccess
 import org.jetbrains.kotlin.fir.declarations.FirClass
 import org.jetbrains.kotlin.fir.declarations.toAnnotationClassId
 import org.jetbrains.kotlin.fir.declarations.utils.classId
@@ -39,6 +39,7 @@ import org.jetbrains.kotlin.fir.types.isNothing
 import org.jetbrains.kotlin.fir.types.isResolved
 import org.jetbrains.kotlin.name.ClassId
 
+@OptIn(DirectDeclarationsAccess::class)
 internal object AggregationChecker : FirClassChecker(MppCheckerKind.Common) {
   enum class ContributionKind(val readableName: String) {
     CONTRIBUTES_TO("ContributesTo"),
@@ -425,40 +426,124 @@ internal object AggregationChecker : FirClassChecker(MppCheckerKind.Common) {
       val bindingType: FirTypeKey
     }
 
-    @Poko
-    class ContributesTo(
+    data class ContributesTo(
       override val declaration: FirClass,
-      @Poko.Skip override val annotation: FirAnnotation,
+      override val annotation: FirAnnotation,
       override val scope: ClassId,
       override val replaces: Set<ClassId>,
-    ) : Contribution
+    ) : Contribution {
+      override fun equals(other: Any?): Boolean {
+        if (this === other) return true
+        if (javaClass != other?.javaClass) return false
 
-    @Poko
-    class ContributesBinding(
+        other as ContributesTo
+
+        if (declaration != other.declaration) return false
+        if (scope != other.scope) return false
+        if (replaces != other.replaces) return false
+
+        return true
+      }
+
+      override fun hashCode(): Int {
+        var result = declaration.hashCode()
+        result = 31 * result + scope.hashCode()
+        result = 31 * result + replaces.hashCode()
+        return result
+      }
+    }
+
+    data class ContributesBinding(
       override val declaration: FirClass,
-      @Poko.Skip override val annotation: FirAnnotation,
+      override val annotation: FirAnnotation,
       override val scope: ClassId,
       override val replaces: Set<ClassId>,
       override val bindingType: FirTypeKey,
-    ) : Contribution, BindingContribution
+    ) : Contribution, BindingContribution {
+      override fun equals(other: Any?): Boolean {
+        if (this === other) return true
+        if (javaClass != other?.javaClass) return false
 
-    @Poko
-    class ContributesIntoSet(
+        other as ContributesBinding
+
+        if (declaration != other.declaration) return false
+        if (scope != other.scope) return false
+        if (replaces != other.replaces) return false
+        if (bindingType != other.bindingType) return false
+
+        return true
+      }
+
+      override fun hashCode(): Int {
+        var result = declaration.hashCode()
+        result = 31 * result + scope.hashCode()
+        result = 31 * result + replaces.hashCode()
+        result = 31 * result + bindingType.hashCode()
+        return result
+      }
+    }
+
+    data class ContributesIntoSet(
       override val declaration: FirClass,
-      @Poko.Skip override val annotation: FirAnnotation,
+      override val annotation: FirAnnotation,
       override val scope: ClassId,
       override val replaces: Set<ClassId>,
       override val bindingType: FirTypeKey,
-    ) : Contribution, BindingContribution
+    ) : Contribution, BindingContribution {
+      override fun equals(other: Any?): Boolean {
+        if (this === other) return true
+        if (javaClass != other?.javaClass) return false
 
-    @Poko
-    class ContributesIntoMap(
+        other as ContributesIntoSet
+
+        if (declaration != other.declaration) return false
+        if (scope != other.scope) return false
+        if (replaces != other.replaces) return false
+        if (bindingType != other.bindingType) return false
+
+        return true
+      }
+
+      override fun hashCode(): Int {
+        var result = declaration.hashCode()
+        result = 31 * result + scope.hashCode()
+        result = 31 * result + replaces.hashCode()
+        result = 31 * result + bindingType.hashCode()
+        return result
+      }
+    }
+
+    data class ContributesIntoMap(
       override val declaration: FirClass,
-      @Poko.Skip override val annotation: FirAnnotation,
+      override val annotation: FirAnnotation,
       override val scope: ClassId,
       override val replaces: Set<ClassId>,
       override val bindingType: FirTypeKey,
       val mapKey: MetroFirAnnotation,
-    ) : Contribution, BindingContribution
+    ) : Contribution, BindingContribution {
+      override fun equals(other: Any?): Boolean {
+        if (this === other) return true
+        if (javaClass != other?.javaClass) return false
+
+        other as ContributesIntoMap
+
+        if (declaration != other.declaration) return false
+        if (scope != other.scope) return false
+        if (replaces != other.replaces) return false
+        if (bindingType != other.bindingType) return false
+        if (mapKey != other.mapKey) return false
+
+        return true
+      }
+
+      override fun hashCode(): Int {
+        var result = declaration.hashCode()
+        result = 31 * result + scope.hashCode()
+        result = 31 * result + replaces.hashCode()
+        result = 31 * result + bindingType.hashCode()
+        result = 31 * result + mapKey.hashCode()
+        return result
+      }
+    }
   }
 }

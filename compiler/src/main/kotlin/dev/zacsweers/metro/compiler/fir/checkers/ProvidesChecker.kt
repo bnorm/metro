@@ -23,6 +23,7 @@ import org.jetbrains.kotlin.fir.analysis.checkers.declaration.FirCallableDeclara
 import org.jetbrains.kotlin.fir.analysis.checkers.getContainingClassSymbol
 import org.jetbrains.kotlin.fir.analysis.checkers.getDirectOverriddenSymbols
 import org.jetbrains.kotlin.fir.containingClassLookupTag
+import org.jetbrains.kotlin.fir.declarations.DirectDeclarationsAccess
 import org.jetbrains.kotlin.fir.declarations.FirCallableDeclaration
 import org.jetbrains.kotlin.fir.declarations.FirProperty
 import org.jetbrains.kotlin.fir.declarations.FirSimpleFunction
@@ -44,6 +45,7 @@ import org.jetbrains.kotlin.fir.types.renderReadableWithFqNames
 // TODO
 //  What about future Kotlin versions where you can have different get signatures
 //  Check for no conflicting names, requires class-level
+@OptIn(DirectDeclarationsAccess::class)
 internal object ProvidesChecker : FirCallableDeclarationChecker(MppCheckerKind.Common) {
 
   override fun check(
@@ -286,11 +288,17 @@ internal object ProvidesChecker : FirCallableDeclarationChecker(MppCheckerKind.C
 
         if (injectConstructor != null) {
           // If the type keys and scope are the same, this is redundant
-          val classTypeKey = FirTypeKey.from(session, returnType, returnClass.annotations)
+          val classTypeKey =
+            FirTypeKey.from(
+              session,
+              returnType,
+              returnClass.resolvedCompilerAnnotationsWithClassIds,
+            )
           val providerTypeKey = FirTypeKey.from(session, returnType, declaration.annotations)
           if (classTypeKey == providerTypeKey) {
             val providerScope = annotations.scope
-            val classScope = returnClass.annotations.scopeAnnotation(session)
+            val classScope =
+              returnClass.resolvedCompilerAnnotationsWithClassIds.scopeAnnotation(session)
             // TODO maybe we should report matching keys but different scopes? Feels like it could
             // be confusing at best
             if (providerScope == classScope) {

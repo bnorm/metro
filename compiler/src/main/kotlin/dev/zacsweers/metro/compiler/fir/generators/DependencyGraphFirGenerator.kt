@@ -21,6 +21,7 @@ import dev.zacsweers.metro.compiler.mapToArray
 import dev.zacsweers.metro.compiler.unsafeLazy
 import org.jetbrains.kotlin.descriptors.ClassKind
 import org.jetbrains.kotlin.fir.FirSession
+import org.jetbrains.kotlin.fir.declarations.DirectDeclarationsAccess
 import org.jetbrains.kotlin.fir.declarations.FirTypeParameter
 import org.jetbrains.kotlin.fir.declarations.FirTypeParameterRef
 import org.jetbrains.kotlin.fir.declarations.utils.isCompanion
@@ -172,6 +173,7 @@ import org.jetbrains.kotlin.name.SpecialNames
  * val appGraph = AppGraph.factory().create(int = 0, analyticsGraph = analyticsGraph)
  * ```
  */
+@OptIn(DirectDeclarationsAccess::class)
 internal class DependencyGraphFirGenerator(session: FirSession) :
   FirDeclarationGenerationExtension(session) {
 
@@ -367,7 +369,9 @@ internal class DependencyGraphFirGenerator(session: FirSession) :
             // Copy annotations over. Workaround for https://youtrack.jetbrains.com/issue/KT-74361/
             for ((i, parameter) in samFunction?.valueParameterSymbols.orEmpty().withIndex()) {
               val parameterToUpdate = valueParameters[i]
-              parameterToUpdate.replaceAnnotationsSafe(parameter.annotations)
+              parameterToUpdate.replaceAnnotationsSafe(
+                parameter.resolvedCompilerAnnotationsWithClassIds
+              )
             }
           }
       } else if (context.owner.hasOrigin(Keys.MetroGraphFactoryImplDeclaration)) {
@@ -430,7 +434,9 @@ internal class DependencyGraphFirGenerator(session: FirSession) :
             // Copy annotations over. Workaround for https://youtrack.jetbrains.com/issue/KT-74361/
             for ((i, parameter) in function.valueParameterSymbols.withIndex()) {
               val parameterToUpdate = valueParameters[i]
-              parameterToUpdate.replaceAnnotationsSafe(parameter.annotations)
+              parameterToUpdate.replaceAnnotationsSafe(
+                parameter.resolvedCompilerAnnotationsWithClassIds
+              )
             }
             // Add our marker annotation
             replaceAnnotationsSafe(
@@ -537,7 +543,7 @@ internal class DependencyGraphFirGenerator(session: FirSession) :
           .filterIsInstance<FirClassSymbol<*>>()
           .onEach {
             log(
-              "Declaration factory candidate ${it.name}. Annotations are ${it.annotations.joinToRender()}"
+              "Declaration factory candidate ${it.name}. Annotations are ${it.resolvedCompilerAnnotationsWithClassIds.joinToRender()}"
             )
           }
           .find { it.isGraphFactory(session) }

@@ -424,7 +424,7 @@ internal class InjectConstructorTransformer(
         irCallConstructor(targetConstructor, emptyList()).apply {
           for (index in constructorParameters.allParameters.indices) {
             val parameter = function.valueParameters[index]
-            putValueArgument(parameter.index, irGet(parameter))
+            arguments[parameter] = irGet(parameter)
           }
         }
       }
