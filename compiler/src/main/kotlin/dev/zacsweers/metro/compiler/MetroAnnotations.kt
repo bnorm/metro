@@ -2,7 +2,6 @@
 // SPDX-License-Identifier: Apache-2.0
 package dev.zacsweers.metro.compiler
 
-import dev.drewhamilton.poko.Poko
 import dev.zacsweers.metro.compiler.fir.MetroFirAnnotation
 import dev.zacsweers.metro.compiler.fir.classIds
 import dev.zacsweers.metro.compiler.fir.isAnnotatedWithAny
@@ -31,8 +30,7 @@ import org.jetbrains.kotlin.ir.declarations.IrValueParameter
 import org.jetbrains.kotlin.ir.types.classOrNull
 import org.jetbrains.kotlin.ir.util.classId
 
-@Poko
-internal class MetroAnnotations<T>(
+internal data class MetroAnnotations<T>(
   val isDependencyGraph: Boolean,
   val isDependencyGraphFactory: Boolean,
   val isInject: Boolean,
@@ -61,44 +59,6 @@ internal class MetroAnnotations<T>(
 
   val isIntoMultibinding
     get() = isIntoSet || isElementsIntoSet || isIntoMap || mapKeys.isNotEmpty()
-
-  fun copy(
-    isDependencyGraph: Boolean = this.isDependencyGraph,
-    isDependencyGraphFactory: Boolean = this.isDependencyGraphFactory,
-    isInject: Boolean = this.isInject,
-    isProvides: Boolean = this.isProvides,
-    isBinds: Boolean = this.isBinds,
-    isBindsInstance: Boolean = this.isBindsInstance,
-    isIntoSet: Boolean = this.isIntoSet,
-    isElementsIntoSet: Boolean = this.isElementsIntoSet,
-    isIntoMap: Boolean = this.isIntoMap,
-    isMultibinds: Boolean = this.isMultibinds,
-    isAssistedFactory: Boolean = this.isAssistedFactory,
-    isComposable: Boolean = this.isComposable,
-    assisted: T? = this.assisted,
-    scope: T? = this.scope,
-    qualifier: T? = this.qualifier,
-    mapKeys: Set<T> = this.mapKeys,
-  ): MetroAnnotations<T> {
-    return MetroAnnotations(
-      isDependencyGraph,
-      isDependencyGraphFactory,
-      isInject,
-      isProvides,
-      isBinds,
-      isBindsInstance,
-      isIntoSet,
-      isElementsIntoSet,
-      isIntoMap,
-      isMultibinds,
-      isAssistedFactory,
-      isComposable,
-      assisted,
-      scope,
-      qualifier,
-      mapKeys,
-    )
-  }
 
   fun mergeWith(other: MetroAnnotations<T>): MetroAnnotations<T> =
     copy(
@@ -352,7 +312,7 @@ private fun FirBasedSymbol<*>.metroAnnotations(
   var qualifier: MetroFirAnnotation? = null
   val mapKeys = mutableSetOf<MetroFirAnnotation>()
 
-  for (annotation in annotations.filter { it.isResolved }) {
+  for (annotation in resolvedCompilerAnnotationsWithClassIds.filter { it.isResolved }) {
     if (annotation !is FirAnnotationCall) continue
     val annotationType = annotation.resolvedType as? ConeClassLikeType ?: continue
     val annotationClass = annotationType.toClassSymbol(session) ?: continue

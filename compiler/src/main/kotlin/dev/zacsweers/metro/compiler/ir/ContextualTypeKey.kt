@@ -2,7 +2,6 @@
 // SPDX-License-Identifier: Apache-2.0
 package dev.zacsweers.metro.compiler.ir
 
-import dev.drewhamilton.poko.Poko
 import dev.zacsweers.metro.compiler.MetroAnnotations
 import dev.zacsweers.metro.compiler.Symbols
 import dev.zacsweers.metro.compiler.expectAs
@@ -25,8 +24,7 @@ import org.jetbrains.kotlin.ir.util.classId
 import org.jetbrains.kotlin.ir.util.render
 
 // TODO refactor/merge with FirContextualTypeKey
-@Poko
-internal class ContextualTypeKey(
+internal data class ContextualTypeKey(
   val typeKey: TypeKey,
   val isWrappedInProvider: Boolean = false,
   val isWrappedInLazy: Boolean = false,
@@ -34,7 +32,7 @@ internal class ContextualTypeKey(
   val hasDefault: Boolean = false,
   val isDeferrable: Boolean = isWrappedInProvider || isWrappedInLazy || isLazyWrappedInProvider,
   val isIntoMultibinding: Boolean = false,
-  @Poko.Skip val rawType: IrType? = null,
+  val rawType: IrType? = null,
 ) {
 
   val requiresProviderInstance: Boolean =
@@ -97,6 +95,36 @@ internal class ContextualTypeKey(
       }
       else -> rawType
     }
+  }
+
+  override fun equals(other: Any?): Boolean {
+    if (this === other) return true
+    if (javaClass != other?.javaClass) return false
+
+    other as ContextualTypeKey
+
+    if (isWrappedInProvider != other.isWrappedInProvider) return false
+    if (isWrappedInLazy != other.isWrappedInLazy) return false
+    if (isLazyWrappedInProvider != other.isLazyWrappedInProvider) return false
+    if (hasDefault != other.hasDefault) return false
+    if (isDeferrable != other.isDeferrable) return false
+    if (isIntoMultibinding != other.isIntoMultibinding) return false
+    if (requiresProviderInstance != other.requiresProviderInstance) return false
+    if (typeKey != other.typeKey) return false
+
+    return true
+  }
+
+  override fun hashCode(): Int {
+    var result = isWrappedInProvider.hashCode()
+    result = 31 * result + isWrappedInLazy.hashCode()
+    result = 31 * result + isLazyWrappedInProvider.hashCode()
+    result = 31 * result + hasDefault.hashCode()
+    result = 31 * result + isDeferrable.hashCode()
+    result = 31 * result + isIntoMultibinding.hashCode()
+    result = 31 * result + requiresProviderInstance.hashCode()
+    result = 31 * result + typeKey.hashCode()
+    return result
   }
 
   // TODO cache these in DependencyGraphTransformer or shared transformer data

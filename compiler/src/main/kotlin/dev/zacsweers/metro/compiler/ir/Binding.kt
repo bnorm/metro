@@ -2,7 +2,6 @@
 // SPDX-License-Identifier: Apache-2.0
 package dev.zacsweers.metro.compiler.ir
 
-import dev.drewhamilton.poko.Poko
 import dev.zacsweers.metro.compiler.MetroAnnotations
 import dev.zacsweers.metro.compiler.Origins
 import dev.zacsweers.metro.compiler.capitalizeUS
@@ -56,10 +55,9 @@ internal sealed interface Binding {
     fun withMapKey(mapKey: IrAnnotation?): T
   }
 
-  @Poko
   class ConstructorInjected(
-    @Poko.Skip override val type: IrClass,
-    @Poko.Skip val injectedConstructor: IrConstructor,
+    override val type: IrClass,
+    val injectedConstructor: IrConstructor,
     val isAssisted: Boolean,
     override val annotations: MetroAnnotations<IrAnnotation>,
     override val typeKey: TypeKey,
@@ -104,10 +102,38 @@ internal sealed interface Binding {
         dependencies,
       )
     }
+
+    override fun equals(other: Any?): Boolean {
+      if (this === other) return true
+      if (javaClass != other?.javaClass) return false
+
+      other as ConstructorInjected
+
+      if (isAssisted != other.isAssisted) return false
+      if (annotations != other.annotations) return false
+      if (typeKey != other.typeKey) return false
+      if (parameters != other.parameters) return false
+      if (dependencies != other.dependencies) return false
+      if (nameHint != other.nameHint) return false
+      if (contextualTypeKey != other.contextualTypeKey) return false
+
+      return true
+    }
+
+    override fun hashCode(): Int {
+      var result = isAssisted.hashCode()
+      result = 31 * result + annotations.hashCode()
+      result = 31 * result + typeKey.hashCode()
+      result = 31 * result + parameters.hashCode()
+      result = 31 * result + dependencies.hashCode()
+      result = 31 * result + nameHint.hashCode()
+      result = 31 * result + contextualTypeKey.hashCode()
+      return result
+    }
   }
 
   class ObjectClass(
-    @Poko.Skip override val type: IrClass,
+    override val type: IrClass,
     override val annotations: MetroAnnotations<IrAnnotation>,
     override val typeKey: TypeKey,
   ) : Binding, BindingWithAnnotations, InjectedClassBinding<ObjectClass> {
@@ -139,9 +165,8 @@ internal sealed interface Binding {
     }
   }
 
-  @Poko
   class Provided(
-    @Poko.Skip val providerFactory: ProviderFactory,
+    val providerFactory: ProviderFactory,
     override val annotations: MetroAnnotations<IrAnnotation>,
     override val contextualTypeKey: ContextualTypeKey,
     override val parameters: Parameters<ConstructorParameter>,
@@ -198,14 +223,33 @@ internal sealed interface Binding {
       append(": ")
       append(typeKey.render(short = true))
     }
+
+    override fun equals(other: Any?): Boolean {
+      if (this === other) return true
+      if (javaClass != other?.javaClass) return false
+
+      other as Provided
+
+      if (annotations != other.annotations) return false
+      if (contextualTypeKey != other.contextualTypeKey) return false
+      if (parameters != other.parameters) return false
+
+      return true
+    }
+
+    override fun hashCode(): Int {
+      var result = annotations.hashCode()
+      result = 31 * result + contextualTypeKey.hashCode()
+      result = 31 * result + parameters.hashCode()
+      return result
+    }
   }
 
   /** Represents an aliased binding, i.e. `@Binds`. Can be a multibinding. */
-  @Poko
   class Alias(
     override val typeKey: TypeKey,
     val aliasedType: TypeKey,
-    @Poko.Skip val ir: IrSimpleFunction?,
+    val ir: IrSimpleFunction?,
     override val parameters: Parameters<out Parameter>,
     override val annotations: MetroAnnotations<IrAnnotation>,
   ) : Binding, BindingWithAnnotations {
@@ -265,13 +309,34 @@ internal sealed interface Binding {
       append(": ")
       append(typeKey.render(short = true))
     }
+
+    override fun equals(other: Any?): Boolean {
+      if (this === other) return true
+      if (javaClass != other?.javaClass) return false
+
+      other as Alias
+
+      if (typeKey != other.typeKey) return false
+      if (aliasedType != other.aliasedType) return false
+      if (parameters != other.parameters) return false
+      if (annotations != other.annotations) return false
+
+      return true
+    }
+
+    override fun hashCode(): Int {
+      var result = typeKey.hashCode()
+      result = 31 * result + aliasedType.hashCode()
+      result = 31 * result + parameters.hashCode()
+      result = 31 * result + annotations.hashCode()
+      return result
+    }
   }
 
-  @Poko
   class Assisted(
-    @Poko.Skip override val type: IrClass,
+    override val type: IrClass,
     val target: ConstructorInjected,
-    @Poko.Skip val function: IrSimpleFunction,
+    val function: IrSimpleFunction,
     override val annotations: MetroAnnotations<IrAnnotation>,
     override val parameters: Parameters<out Parameter>,
     override val typeKey: TypeKey,
@@ -294,6 +359,28 @@ internal sealed interface Binding {
         parameters,
         typeKey,
       )
+    }
+
+    override fun equals(other: Any?): Boolean {
+      if (this === other) return true
+      if (javaClass != other?.javaClass) return false
+
+      other as Assisted
+
+      if (target != other.target) return false
+      if (annotations != other.annotations) return false
+      if (parameters != other.parameters) return false
+      if (typeKey != other.typeKey) return false
+
+      return true
+    }
+
+    override fun hashCode(): Int {
+      var result = target.hashCode()
+      result = 31 * result + annotations.hashCode()
+      result = 31 * result + parameters.hashCode()
+      result = 31 * result + typeKey.hashCode()
+      return result
     }
   }
 
@@ -361,10 +448,9 @@ internal sealed interface Binding {
   //  - @multibinds methods can never be scoped
   //  - their providers can't go into providerFields - would cause duplicates. Need to look up by
   //   nameHint
-  @Poko
   class Multibinding(
     override val typeKey: TypeKey,
-    @Poko.Skip val declaration: IrSimpleFunction?,
+    val declaration: IrSimpleFunction?,
     val isSet: Boolean,
     val isMap: Boolean,
     // Reconcile this with dependencies?
@@ -417,6 +503,28 @@ internal sealed interface Binding {
 
         return Multibinding(typeKey, isSet = isSet, isMap = isMap, declaration = declaration)
       }
+    }
+
+    override fun equals(other: Any?): Boolean {
+      if (this === other) return true
+      if (javaClass != other?.javaClass) return false
+
+      other as Multibinding
+
+      if (isSet != other.isSet) return false
+      if (isMap != other.isMap) return false
+      if (typeKey != other.typeKey) return false
+      if (sourceBindings != other.sourceBindings) return false
+
+      return true
+    }
+
+    override fun hashCode(): Int {
+      var result = isSet.hashCode()
+      result = 31 * result + isMap.hashCode()
+      result = 31 * result + typeKey.hashCode()
+      result = 31 * result + sourceBindings.hashCode()
+      return result
     }
   }
 

@@ -2,7 +2,6 @@
 // SPDX-License-Identifier: Apache-2.0
 package dev.zacsweers.metro.compiler.ir.parameters
 
-import dev.drewhamilton.poko.Poko
 import dev.zacsweers.metro.compiler.asName
 import dev.zacsweers.metro.compiler.ir.IrMetroContext
 import dev.zacsweers.metro.compiler.ir.TypeKey
@@ -107,8 +106,7 @@ internal sealed interface Parameters<T : Parameter> : Comparable<Parameters<*>> 
   }
 }
 
-@Poko
-private class ParametersImpl<T : Parameter>(
+private data class ParametersImpl<T : Parameter>(
   override val callableId: CallableId,
   override val instance: Parameter?,
   override val extensionReceiver: T?,

@@ -2,13 +2,8 @@
 // SPDX-License-Identifier: Apache-2.0
 package dev.zacsweers.metro.compiler.fir
 
-import dev.zacsweers.metro.compiler.Symbols
-import dev.zacsweers.metro.compiler.asName
-import dev.zacsweers.metro.compiler.capitalizeUS
-import dev.zacsweers.metro.compiler.decapitalizeUS
-import dev.zacsweers.metro.compiler.expectAsOrNull
-import dev.zacsweers.metro.compiler.mapToArray
-import java.util.Objects
+import dev.zacsweers.metro.compiler.*
+import java.util.*
 import org.jetbrains.kotlin.GeneratedDeclarationKey
 import org.jetbrains.kotlin.KtSourceElement
 import org.jetbrains.kotlin.descriptors.ClassKind
@@ -17,60 +12,21 @@ import org.jetbrains.kotlin.descriptors.Visibilities
 import org.jetbrains.kotlin.descriptors.Visibility
 import org.jetbrains.kotlin.diagnostics.DiagnosticReporter
 import org.jetbrains.kotlin.diagnostics.reportOn
-import org.jetbrains.kotlin.fir.FirAnnotationContainer
-import org.jetbrains.kotlin.fir.FirElement
-import org.jetbrains.kotlin.fir.FirSession
+import org.jetbrains.kotlin.fir.*
 import org.jetbrains.kotlin.fir.analysis.checkers.context.CheckerContext
 import org.jetbrains.kotlin.fir.analysis.checkers.getContainingClassSymbol
-import org.jetbrains.kotlin.fir.declarations.FirCallableDeclaration
-import org.jetbrains.kotlin.fir.declarations.FirClass
-import org.jetbrains.kotlin.fir.declarations.FirClassLikeDeclaration
-import org.jetbrains.kotlin.fir.declarations.FirDeclaration
-import org.jetbrains.kotlin.fir.declarations.FirDeclarationOrigin
-import org.jetbrains.kotlin.fir.declarations.FirMemberDeclaration
-import org.jetbrains.kotlin.fir.declarations.FirProperty
-import org.jetbrains.kotlin.fir.declarations.FirTypeParameterRef
-import org.jetbrains.kotlin.fir.declarations.evaluateAs
-import org.jetbrains.kotlin.fir.declarations.findArgumentByName
-import org.jetbrains.kotlin.fir.declarations.getBooleanArgument
-import org.jetbrains.kotlin.fir.declarations.getDeprecationsProvider
-import org.jetbrains.kotlin.fir.declarations.getTargetType
-import org.jetbrains.kotlin.fir.declarations.hasAnnotation
-import org.jetbrains.kotlin.fir.declarations.origin
-import org.jetbrains.kotlin.fir.declarations.primaryConstructorIfAny
-import org.jetbrains.kotlin.fir.declarations.toAnnotationClassIdSafe
-import org.jetbrains.kotlin.fir.declarations.utils.classId
-import org.jetbrains.kotlin.fir.declarations.utils.isAbstract
-import org.jetbrains.kotlin.fir.declarations.utils.isLocal
-import org.jetbrains.kotlin.fir.declarations.utils.isOverride
-import org.jetbrains.kotlin.fir.declarations.utils.modality
-import org.jetbrains.kotlin.fir.declarations.utils.visibility
+import org.jetbrains.kotlin.fir.declarations.*
+import org.jetbrains.kotlin.fir.declarations.utils.*
 import org.jetbrains.kotlin.fir.deserialization.toQualifiedPropertyAccessExpression
-import org.jetbrains.kotlin.fir.expressions.FirAnnotation
-import org.jetbrains.kotlin.fir.expressions.FirAnnotationCall
-import org.jetbrains.kotlin.fir.expressions.FirArrayLiteral
-import org.jetbrains.kotlin.fir.expressions.FirClassReferenceExpression
-import org.jetbrains.kotlin.fir.expressions.FirEmptyArgumentList
-import org.jetbrains.kotlin.fir.expressions.FirExpression
-import org.jetbrains.kotlin.fir.expressions.FirFunctionCall
-import org.jetbrains.kotlin.fir.expressions.FirGetClassCall
-import org.jetbrains.kotlin.fir.expressions.FirLiteralExpression
-import org.jetbrains.kotlin.fir.expressions.FirPropertyAccessExpression
-import org.jetbrains.kotlin.fir.expressions.FirResolvedQualifier
-import org.jetbrains.kotlin.fir.expressions.arguments
+import org.jetbrains.kotlin.fir.expressions.*
 import org.jetbrains.kotlin.fir.expressions.builder.buildAnnotation
 import org.jetbrains.kotlin.fir.expressions.builder.buildAnnotationArgumentMapping
-import org.jetbrains.kotlin.fir.expressions.builder.buildAnnotationCall
 import org.jetbrains.kotlin.fir.expressions.builder.buildEnumEntryDeserializedAccessExpression
 import org.jetbrains.kotlin.fir.expressions.builder.buildLiteralExpression
-import org.jetbrains.kotlin.fir.expressions.unexpandedClassId
 import org.jetbrains.kotlin.fir.extensions.FirSupertypeGenerationExtension.TypeResolveService
-import org.jetbrains.kotlin.fir.extensions.buildUserTypeFromQualifierParts
-import org.jetbrains.kotlin.fir.moduleData
-import org.jetbrains.kotlin.fir.references.builder.buildResolvedNamedReference
+import org.jetbrains.kotlin.fir.extensions.typeFromQualifierParts
 import org.jetbrains.kotlin.fir.references.impl.FirSimpleNamedReference
 import org.jetbrains.kotlin.fir.references.toResolvedPropertySymbol
-import org.jetbrains.kotlin.fir.render
 import org.jetbrains.kotlin.fir.resolve.defaultType
 import org.jetbrains.kotlin.fir.resolve.getSuperTypes
 import org.jetbrains.kotlin.fir.resolve.lookupSuperTypes
@@ -80,38 +36,13 @@ import org.jetbrains.kotlin.fir.scopes.impl.toConeType
 import org.jetbrains.kotlin.fir.scopes.jvm.computeJvmDescriptor
 import org.jetbrains.kotlin.fir.symbols.FirBasedSymbol
 import org.jetbrains.kotlin.fir.symbols.SymbolInternals
-import org.jetbrains.kotlin.fir.symbols.impl.FirBackingFieldSymbol
-import org.jetbrains.kotlin.fir.symbols.impl.FirCallableSymbol
-import org.jetbrains.kotlin.fir.symbols.impl.FirClassLikeSymbol
-import org.jetbrains.kotlin.fir.symbols.impl.FirClassSymbol
-import org.jetbrains.kotlin.fir.symbols.impl.FirConstructorSymbol
-import org.jetbrains.kotlin.fir.symbols.impl.FirFunctionSymbol
-import org.jetbrains.kotlin.fir.symbols.impl.FirNamedFunctionSymbol
-import org.jetbrains.kotlin.fir.symbols.impl.FirPropertyAccessorSymbol
-import org.jetbrains.kotlin.fir.symbols.impl.FirPropertySymbol
-import org.jetbrains.kotlin.fir.symbols.impl.FirRegularClassSymbol
-import org.jetbrains.kotlin.fir.symbols.impl.FirValueParameterSymbol
-import org.jetbrains.kotlin.fir.toFirResolvedTypeRef
-import org.jetbrains.kotlin.fir.types.ConeClassLikeType
-import org.jetbrains.kotlin.fir.types.ConeKotlinType
-import org.jetbrains.kotlin.fir.types.ConeTypeProjection
-import org.jetbrains.kotlin.fir.types.FirTypeProjectionWithVariance
-import org.jetbrains.kotlin.fir.types.FirTypeRef
-import org.jetbrains.kotlin.fir.types.builder.buildResolvedTypeRef
-import org.jetbrains.kotlin.fir.types.classId
-import org.jetbrains.kotlin.fir.types.coneTypeOrNull
-import org.jetbrains.kotlin.fir.types.constructClassLikeType
-import org.jetbrains.kotlin.fir.types.constructType
-import org.jetbrains.kotlin.fir.types.isResolved
-import org.jetbrains.kotlin.fir.types.resolvedType
-import org.jetbrains.kotlin.fir.types.type
+import org.jetbrains.kotlin.fir.symbols.impl.*
+import org.jetbrains.kotlin.fir.types.*
 import org.jetbrains.kotlin.name.CallableId
 import org.jetbrains.kotlin.name.ClassId
 import org.jetbrains.kotlin.name.Name
 import org.jetbrains.kotlin.name.StandardClassIds
-import org.jetbrains.kotlin.platform.isJs
 import org.jetbrains.kotlin.types.ConstantValueKind
-import org.jetbrains.kotlin.utils.addToStdlib.firstIsInstanceOrNull
 
 internal fun FirBasedSymbol<*>.isAnnotatedInject(session: FirSession): Boolean {
   return isAnnotatedWithAny(session, session.classIds.injectAnnotations)
@@ -154,14 +85,18 @@ internal fun FirBasedSymbol<*>.isAnnotatedWithAny(
   session: FirSession,
   names: Set<ClassId>,
 ): Boolean {
-  return annotations.filter { it.isResolved }.any { it.toAnnotationClassIdSafe(session) in names }
+  return resolvedCompilerAnnotationsWithClassIds
+    .filter { it.isResolved }
+    .any { it.toAnnotationClassIdSafe(session) in names }
 }
 
 internal fun FirBasedSymbol<*>.findAnnotation(
   session: FirSession,
   names: Set<ClassId>,
 ): FirAnnotation? {
-  return annotations.filter { it.isResolved }.find { it.toAnnotationClassIdSafe(session) in names }
+  return resolvedCompilerAnnotationsWithClassIds
+    .filter { it.isResolved }
+    .find { it.toAnnotationClassIdSafe(session) in names }
 }
 
 internal fun List<FirAnnotation>.isAnnotatedWithAny(
@@ -202,7 +137,7 @@ internal inline fun Visibility.checkVisibility(
 
 internal fun FirClassSymbol<*>.allFunctions(session: FirSession): Sequence<FirNamedFunctionSymbol> {
   return sequence {
-    yieldAll(declarationSymbols.filterIsInstance<FirNamedFunctionSymbol>())
+    yieldAll(declaredFunctions(session))
     yieldAll(
       lookupSuperTypes(
           symbol = this@allFunctions,
@@ -216,6 +151,7 @@ internal fun FirClassSymbol<*>.allFunctions(session: FirSession): Sequence<FirNa
   }
 }
 
+@DirectDeclarationsAccess
 internal fun FirClassSymbol<*>.callableDeclarations(
   session: FirSession,
   includeSelf: Boolean,
@@ -362,9 +298,8 @@ internal fun FirAnnotationCall.computeAnnotationHash(): Int {
           is FirPropertyAccessExpression -> {
             it.calleeReference
               .toResolvedPropertySymbol()
-              ?.receiverParameter
-              ?.typeRef
-              ?.coneTypeOrNull
+              ?.receiverParameterSymbol
+              ?.resolvedType
               ?.classId
           }
           else -> {
@@ -377,6 +312,7 @@ internal fun FirAnnotationCall.computeAnnotationHash(): Int {
   )
 }
 
+@DirectDeclarationsAccess
 internal inline fun FirClassSymbol<*>.findInjectConstructor(
   session: FirSession,
   context: CheckerContext,
@@ -391,10 +327,13 @@ internal inline fun FirClassSymbol<*>.findInjectConstructor(
       constructorInjections[0].also {
         if (it.isPrimary) {
           val isAssisted =
-            it.annotations.isAnnotatedWithAny(session, session.classIds.assistedAnnotations)
+            it.resolvedCompilerAnnotationsWithClassIds.isAnnotatedWithAny(
+              session,
+              session.classIds.assistedAnnotations,
+            )
           if (!isAssisted && it.valueParameterSymbols.isEmpty()) {
             reporter.reportOn(
-              it.annotations
+              it.resolvedCompilerAnnotationsWithClassIds
                 .annotationsIn(session, session.classIds.injectAnnotations)
                 .single()
                 .source,
@@ -408,7 +347,7 @@ internal inline fun FirClassSymbol<*>.findInjectConstructor(
     else -> {
       reporter.reportOn(
         constructorInjections[0]
-          .annotations
+          .resolvedCompilerAnnotationsWithClassIds
           .annotationsIn(session, session.classIds.injectAnnotations)
           .single()
           .source,
@@ -420,6 +359,7 @@ internal inline fun FirClassSymbol<*>.findInjectConstructor(
   }
 }
 
+@DirectDeclarationsAccess
 internal fun FirClassLikeSymbol<*>.findInjectConstructors(
   session: FirSession,
   checkClass: Boolean = true,
@@ -431,7 +371,10 @@ internal fun FirClassLikeSymbol<*>.findInjectConstructors(
     declarationSymbols.filterIsInstance<FirConstructorSymbol>().filter { it.isPrimary }
   } else {
     declarationSymbols.filterIsInstance<FirConstructorSymbol>().filter {
-      it.annotations.isAnnotatedWithAny(session, session.classIds.injectAnnotations)
+      it.resolvedCompilerAnnotationsWithClassIds.isAnnotatedWithAny(
+        session,
+        session.classIds.injectAnnotations,
+      )
     }
   }
 }
@@ -577,13 +520,13 @@ internal inline fun FirConstructorSymbol.validateVisibility(
 }
 
 internal fun FirBasedSymbol<*>.qualifierAnnotation(session: FirSession): MetroFirAnnotation? =
-  annotations.qualifierAnnotation(session)
+  resolvedCompilerAnnotationsWithClassIds.qualifierAnnotation(session)
 
 internal fun List<FirAnnotation>.qualifierAnnotation(session: FirSession): MetroFirAnnotation? =
   asSequence().annotationAnnotatedWithAny(session, session.classIds.qualifierAnnotations)
 
 internal fun FirBasedSymbol<*>.mapKeyAnnotation(session: FirSession): MetroFirAnnotation? =
-  annotations.mapKeyAnnotation(session)
+  resolvedCompilerAnnotationsWithClassIds.mapKeyAnnotation(session)
 
 internal fun List<FirAnnotation>.mapKeyAnnotation(session: FirSession): MetroFirAnnotation? =
   asSequence().annotationAnnotatedWithAny(session, session.classIds.mapKeyAnnotations)
@@ -619,32 +562,7 @@ internal fun FirAnnotationCall.isAnnotatedWithAny(
 ): Boolean {
   val annotationType = resolvedType as? ConeClassLikeType ?: return false
   val annotationClass = annotationType.toClassSymbol(session) ?: return false
-  return annotationClass.annotations.isAnnotatedWithAny(session, names)
-}
-
-internal fun FirDeclaration.excludeFromJsExport(session: FirSession) {
-  if (!session.moduleData.platform.isJs()) {
-    return
-  }
-  val jsExportIgnore =
-    session.symbolProvider.getClassLikeSymbolByClassId(Symbols.ClassIds.jsExportIgnore)
-  val jsExportIgnoreAnnotation = jsExportIgnore as? FirRegularClassSymbol ?: return
-  val jsExportIgnoreConstructor =
-    jsExportIgnoreAnnotation.declarationSymbols.firstIsInstanceOrNull<FirConstructorSymbol>()
-      ?: return
-
-  val jsExportIgnoreAnnotationCall = buildAnnotationCall {
-    argumentList = FirEmptyArgumentList
-    annotationTypeRef = buildResolvedTypeRef { coneType = jsExportIgnoreAnnotation.defaultType() }
-    calleeReference = buildResolvedNamedReference {
-      name = jsExportIgnoreAnnotation.name
-      resolvedSymbol = jsExportIgnoreConstructor
-    }
-
-    containingDeclarationSymbol = this@excludeFromJsExport.symbol
-  }
-
-  replaceAnnotations(annotations + jsExportIgnoreAnnotationCall)
+  return annotationClass.resolvedCompilerAnnotationsWithClassIds.isAnnotatedWithAny(session, names)
 }
 
 internal fun createDeprecatedHiddenAnnotation(session: FirSession): FirAnnotation =
@@ -919,18 +837,14 @@ internal fun FirGetClassCall.resolvedClassArgumentTarget(
     return (argument as? FirClassReferenceExpression?)?.classTypeRef?.coneTypeOrNull
   }
 
-  val typeToResolve =
-    buildUserTypeFromQualifierParts(isMarkedNullable = false) {
-      fun visitQualifiers(expression: FirExpression) {
-        if (expression !is FirPropertyAccessExpression) return
-        expression.explicitReceiver?.let { visitQualifiers(it) }
-        expression.qualifierName?.let { part(it) }
-      }
-      visitQualifiers(argument)
+  return typeFromQualifierParts(isMarkedNullable = false, typeResolver, source!!) {
+    fun visitQualifiers(expression: FirExpression) {
+      if (expression !is FirPropertyAccessExpression) return
+      expression.explicitReceiver?.let { visitQualifiers(it) }
+      expression.qualifierName?.let { part(it) }
     }
-
-  val resolvedArgument = typeResolver.resolveUserType(typeToResolve).coneType
-  return resolvedArgument
+    visitQualifiers(argument)
+  }
 }
 
 internal fun FirAnnotation.classArgument(name: Name, index: Int) =

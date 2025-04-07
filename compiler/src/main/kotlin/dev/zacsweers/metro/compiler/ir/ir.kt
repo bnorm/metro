@@ -12,7 +12,7 @@ import dev.zacsweers.metro.compiler.metroAnnotations
 import java.io.File
 import java.util.Objects
 import org.jetbrains.kotlin.backend.common.extensions.IrPluginContext
-import org.jetbrains.kotlin.backend.common.ir.addExtensionReceiver
+import org.jetbrains.kotlin.backend.common.ir.createExtensionReceiver
 import org.jetbrains.kotlin.backend.common.lower.DeclarationIrBuilder
 import org.jetbrains.kotlin.cli.common.messages.CompilerMessageLocationWithRange
 import org.jetbrains.kotlin.cli.common.messages.CompilerMessageSourceLocation
@@ -20,7 +20,6 @@ import org.jetbrains.kotlin.descriptors.DescriptorVisibilities
 import org.jetbrains.kotlin.descriptors.Modality
 import org.jetbrains.kotlin.fir.lazy.Fir2IrLazyClass
 import org.jetbrains.kotlin.ir.IrElement
-import org.jetbrains.kotlin.ir.backend.js.utils.valueArguments
 import org.jetbrains.kotlin.ir.builders.IrBlockBodyBuilder
 import org.jetbrains.kotlin.ir.builders.IrBuilderWithScope
 import org.jetbrains.kotlin.ir.builders.IrGeneratorContext
@@ -220,7 +219,7 @@ internal fun IrStatementsBuilder<*>.irTemporary(
 internal fun IrConstructorCall.computeAnnotationHash(): Int {
   return Objects.hash(
     type.rawType().classIdOrFail,
-    valueArguments
+    arguments
       .map {
         it?.computeHashSource()
           ?: error("Unknown annotation argument type: ${it?.let { it::class.java }}")
@@ -320,7 +319,7 @@ internal fun irLambda(
       }
       .apply {
         this.parent = parent
-        receiverParameter?.let { addExtensionReceiver(it) }
+        receiverParameter?.let { createExtensionReceiver(it) }
         valueParameters.forEachIndexed { index, type -> addValueParameter("arg$index", type) }
         body = context.createIrBuilder(this.symbol).irBlockBody { content(this@apply) }
       }
@@ -349,7 +348,7 @@ internal fun IrBuilderWithScope.irCallConstructorWithSameParameters(
   return irCall(constructor)
     .apply {
       for (parameter in source.valueParameters) {
-        putValueArgument(parameter.index, irGet(parameter))
+        arguments[parameter] = irGet(parameter)
       }
     }
     .apply {

@@ -9,7 +9,6 @@ import dev.zacsweers.metro.compiler.fir.abstractFunctions
 import dev.zacsweers.metro.compiler.fir.classIds
 import dev.zacsweers.metro.compiler.fir.constructType
 import dev.zacsweers.metro.compiler.fir.hasOrigin
-import dev.zacsweers.metro.compiler.fir.isAnnotatedWithAny
 import dev.zacsweers.metro.compiler.fir.wrapInProviderIfNecessary
 import dev.zacsweers.metro.compiler.mapToArray
 import dev.zacsweers.metro.compiler.unsafeLazy
@@ -24,6 +23,7 @@ import org.jetbrains.kotlin.fir.extensions.FirDeclarationPredicateRegistrar
 import org.jetbrains.kotlin.fir.extensions.MemberGenerationContext
 import org.jetbrains.kotlin.fir.extensions.NestedClassGenerationContext
 import org.jetbrains.kotlin.fir.extensions.predicate.LookupPredicate.BuilderContext.annotated
+import org.jetbrains.kotlin.fir.extensions.predicateBasedProvider
 import org.jetbrains.kotlin.fir.plugin.createCompanionObject
 import org.jetbrains.kotlin.fir.plugin.createConstructor
 import org.jetbrains.kotlin.fir.plugin.createDefaultPrivateConstructor
@@ -112,7 +112,7 @@ internal class AssistedFactoryImplFirGenerator(session: FirSession) :
     context: NestedClassGenerationContext,
   ): Set<Name> {
     return if (
-      classSymbol.isAnnotatedWithAny(session, session.classIds.assistedFactoryAnnotations)
+      session.predicateBasedProvider.matches(assistedFactoryAnnotationPredicate, classSymbol)
     ) {
       val classId = classSymbol.classId.createNestedClassId(Symbols.Names.metroImpl)
       implClasses[classId] = AssistedFactoryImpl(classSymbol)

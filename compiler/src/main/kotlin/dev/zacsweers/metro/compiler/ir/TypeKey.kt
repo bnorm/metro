@@ -2,7 +2,6 @@
 // SPDX-License-Identifier: Apache-2.0
 package dev.zacsweers.metro.compiler.ir
 
-import dev.drewhamilton.poko.Poko
 import dev.zacsweers.metro.compiler.unsafeLazy
 import org.jetbrains.kotlin.ir.types.IrSimpleType
 import org.jetbrains.kotlin.ir.types.IrType
@@ -11,15 +10,10 @@ import org.jetbrains.kotlin.ir.types.typeOrNull
 import org.jetbrains.kotlin.ir.util.render
 
 // TODO cache these in DependencyGraphTransformer or shared transformer data
-@Poko
-internal class TypeKey(val type: IrType, val qualifier: IrAnnotation? = null) :
+internal data class TypeKey(val type: IrType, val qualifier: IrAnnotation? = null) :
   Comparable<TypeKey> {
 
   private val cachedRender by unsafeLazy { render(short = false, includeQualifier = true) }
-
-  fun copy(type: IrType = this.type, qualifier: IrAnnotation? = this.qualifier): TypeKey {
-    return TypeKey(type, qualifier)
-  }
 
   override fun toString(): String = cachedRender
 

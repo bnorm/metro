@@ -2,7 +2,6 @@
 // SPDX-License-Identifier: Apache-2.0
 package dev.zacsweers.metro.compiler.fir
 
-import dev.drewhamilton.poko.Poko
 import dev.zacsweers.metro.compiler.Symbols
 import dev.zacsweers.metro.compiler.expectAs
 import dev.zacsweers.metro.compiler.expectAsOrNull
@@ -15,8 +14,7 @@ import org.jetbrains.kotlin.fir.types.ConeKotlinType
 import org.jetbrains.kotlin.fir.types.ConeKotlinTypeProjection
 import org.jetbrains.kotlin.fir.types.classId
 
-@Poko
-internal class FirContextualTypeKey(
+internal data class FirContextualTypeKey(
   val typeKey: FirTypeKey,
   val isWrappedInProvider: Boolean = false,
   val isWrappedInLazy: Boolean = false,

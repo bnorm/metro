@@ -2,7 +2,6 @@
 // SPDX-License-Identifier: Apache-2.0
 package dev.zacsweers.metro.compiler.ir
 
-import dev.drewhamilton.poko.Poko
 import dev.zacsweers.metro.compiler.MetroAnnotations
 import org.jetbrains.kotlin.ir.declarations.IrSimpleFunction
 import org.jetbrains.kotlin.ir.util.callableId
@@ -10,9 +9,8 @@ import org.jetbrains.kotlin.name.CallableId
 
 /** Simple holder with resolved annotations to save us lookups. */
 // TODO cache these in a transformer context?
-@Poko
 internal class MetroSimpleFunction(
-  @Poko.Skip val ir: IrSimpleFunction,
+  val ir: IrSimpleFunction,
   val annotations: MetroAnnotations<IrAnnotation>,
   val callableId: CallableId = ir.callableId,
 ) : Comparable<MetroSimpleFunction> {
@@ -20,6 +18,24 @@ internal class MetroSimpleFunction(
 
   override fun compareTo(other: MetroSimpleFunction): Int {
     return callableId.toString().compareTo(other.callableId.toString())
+  }
+
+  override fun equals(other: Any?): Boolean {
+    if (this === other) return true
+    if (javaClass != other?.javaClass) return false
+
+    other as MetroSimpleFunction
+
+    if (annotations != other.annotations) return false
+    if (callableId != other.callableId) return false
+
+    return true
+  }
+
+  override fun hashCode(): Int {
+    var result = annotations.hashCode()
+    result = 31 * result + callableId.hashCode()
+    return result
   }
 }
 

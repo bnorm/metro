@@ -39,7 +39,6 @@ import dev.zacsweers.metro.compiler.proto.DependencyGraphProto
 import dev.zacsweers.metro.compiler.proto.MetroMetadata
 import dev.zacsweers.metro.compiler.unsafeLazy
 import org.jetbrains.kotlin.descriptors.ClassKind
-import org.jetbrains.kotlin.ir.backend.js.utils.valueArguments
 import org.jetbrains.kotlin.ir.builders.irGet
 import org.jetbrains.kotlin.ir.builders.irGetObject
 import org.jetbrains.kotlin.ir.declarations.IrClass
@@ -278,12 +277,14 @@ internal class ProvidesTransformer(context: IrMetroContext) : IrMetroContext by 
         val sourceParam =
           if (irParam.origin == Origins.InstanceParameter) {
             sourceParameters.instance!!
-          } else if (irParam.index == -1) {
+          } else if (irParam.indexInParameters == -1) {
             error(
               "No source parameter found for $irParam. Index was somehow -1.\n${reference.parent.owner.dumpKotlinLike()}"
             )
           } else {
-            sourceParameters.valueParameters.getOrNull(irParam.index - parameterIndexOffset)
+            sourceParameters.valueParameters.getOrNull(
+              irParam.indexInParameters - parameterIndexOffset
+            )
               ?: error(
                 "No source parameter found for $irParam\nparam is ${irParam.name} in function ${ctor.dumpKotlinLike()}\n${reference.parent.owner.dumpKotlinLike()}"
               )
@@ -321,7 +322,7 @@ internal class ProvidesTransformer(context: IrMetroContext) : IrMetroContext by 
       // If any annotations have IrClassReference arguments, the compiler barfs
       var hasErrors = false
       for (annotation in providesFunction.annotations) {
-        for (arg in annotation.valueArguments) {
+        for (arg in annotation.arguments) {
           if (arg is IrClassReference) {
             val message =
               "Private provider functions with KClass arguments are not supported: " +

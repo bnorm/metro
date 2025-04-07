@@ -2,7 +2,6 @@
 // SPDX-License-Identifier: Apache-2.0
 package dev.zacsweers.metro.compiler.ir.parameters
 
-import dev.drewhamilton.poko.Poko
 import dev.zacsweers.metro.compiler.Symbols
 import dev.zacsweers.metro.compiler.ir.BindingStack
 import dev.zacsweers.metro.compiler.ir.ContextualTypeKey
@@ -22,7 +21,6 @@ import org.jetbrains.kotlin.ir.util.classId
 import org.jetbrains.kotlin.ir.util.parentAsClass
 import org.jetbrains.kotlin.name.Name
 
-@Poko
 internal class ConstructorParameter(
   override val kind: Kind,
   override val name: Name,
@@ -36,12 +34,12 @@ internal class ConstructorParameter(
   override val assistedIdentifier: String,
   override val assistedParameterKey: Parameter.AssistedParameterKey =
     Parameter.AssistedParameterKey(contextualTypeKey.typeKey, assistedIdentifier),
-  @Poko.Skip override val originalName: Name,
-  @Poko.Skip override val providerType: IrType,
-  @Poko.Skip override val lazyType: IrType,
-  @Poko.Skip override val symbols: Symbols,
-  @Poko.Skip val bindingStackEntry: BindingStack.Entry,
-  @Poko.Skip override val location: CompilerMessageSourceLocation?,
+  override val originalName: Name,
+  override val providerType: IrType,
+  override val lazyType: IrType,
+  override val symbols: Symbols,
+  val bindingStackEntry: BindingStack.Entry,
+  override val location: CompilerMessageSourceLocation?,
 ) : Parameter {
   override lateinit var ir: IrValueParameter
   override val typeKey: TypeKey = contextualTypeKey.typeKey
@@ -64,6 +62,56 @@ internal class ConstructorParameter(
   }
 
   override fun toString(): String = cachedToString
+
+  override fun equals(other: Any?): Boolean {
+    if (this === other) return true
+    if (javaClass != other?.javaClass) return false
+
+    other as ConstructorParameter
+
+    if (isAssisted != other.isAssisted) return false
+    if (isGraphInstance != other.isGraphInstance) return false
+    if (isBindsInstance != other.isBindsInstance) return false
+    if (isIncludes != other.isIncludes) return false
+    if (isExtends != other.isExtends) return false
+    if (hasDefault != other.hasDefault) return false
+    if (isWrappedInProvider != other.isWrappedInProvider) return false
+    if (isWrappedInLazy != other.isWrappedInLazy) return false
+    if (isLazyWrappedInProvider != other.isLazyWrappedInProvider) return false
+    if (kind != other.kind) return false
+    if (name != other.name) return false
+    if (contextualTypeKey != other.contextualTypeKey) return false
+    if (assistedIdentifier != other.assistedIdentifier) return false
+    if (assistedParameterKey != other.assistedParameterKey) return false
+    if (ir != other.ir) return false
+    if (typeKey != other.typeKey) return false
+    if (type != other.type) return false
+    if (cachedToString != other.cachedToString) return false
+
+    return true
+  }
+
+  override fun hashCode(): Int {
+    var result = isAssisted.hashCode()
+    result = 31 * result + isGraphInstance.hashCode()
+    result = 31 * result + isBindsInstance.hashCode()
+    result = 31 * result + isIncludes.hashCode()
+    result = 31 * result + isExtends.hashCode()
+    result = 31 * result + hasDefault.hashCode()
+    result = 31 * result + isWrappedInProvider.hashCode()
+    result = 31 * result + isWrappedInLazy.hashCode()
+    result = 31 * result + isLazyWrappedInProvider.hashCode()
+    result = 31 * result + kind.hashCode()
+    result = 31 * result + name.hashCode()
+    result = 31 * result + contextualTypeKey.hashCode()
+    result = 31 * result + assistedIdentifier.hashCode()
+    result = 31 * result + assistedParameterKey.hashCode()
+    result = 31 * result + ir.hashCode()
+    result = 31 * result + typeKey.hashCode()
+    result = 31 * result + type.hashCode()
+    result = 31 * result + cachedToString.hashCode()
+    return result
+  }
 }
 
 internal fun List<IrValueParameter>.mapToConstructorParameters(
