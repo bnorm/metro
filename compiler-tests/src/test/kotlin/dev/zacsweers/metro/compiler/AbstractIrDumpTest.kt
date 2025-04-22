@@ -3,10 +3,7 @@
 package dev.zacsweers.metro.compiler
 
 import org.jetbrains.kotlin.config.JvmTarget
-import org.jetbrains.kotlin.test.backend.handlers.IrPrettyKotlinDumpHandler
-import org.jetbrains.kotlin.test.backend.handlers.IrTextDumpHandler
 import org.jetbrains.kotlin.test.builders.TestConfigurationBuilder
-import org.jetbrains.kotlin.test.builders.configureIrHandlersStep
 import org.jetbrains.kotlin.test.directives.CodegenTestDirectives.DUMP_IR
 import org.jetbrains.kotlin.test.directives.CodegenTestDirectives.DUMP_KT_IR
 import org.jetbrains.kotlin.test.directives.CodegenTestDirectives.IGNORE_DEXING
@@ -36,13 +33,6 @@ open class AbstractIrDumpTest : AbstractFirLightTreeJvmIrTextTest() {
 
         -DUMP_IR
         +DUMP_KT_IR
-      }
-
-      configureIrHandlersStep {
-        useHandlers(
-          ::IrTextDumpHandler,
-          ::IrPrettyKotlinDumpHandler,
-        )
       }
     }
   }
